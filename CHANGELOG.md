@@ -1,5 +1,10 @@
 # Release History - finduser.ps1
 
+## 4.1.0 - 2026-08-19
+- Changed default search scope to the current user's domain context (`$env:USERDNSDOMAIN`, via new `Get-CurrentUserDomain`), instead of always searching every domain in `config.xml`.
+- Added `-AllDomains` switch to opt into searching every domain listed in `config.xml`, restoring the previous behavior.
+- Updated usage screen, comment-based help, and README to document the new default and switch.
+
 ## 4.0.0 - 2026-08-19
 - Rewrote script to follow team PowerShell coding standards (see coding_standards.txt).
 - Fixed: `isObjectSid` always returned `$false` (referenced an undefined `$sid` variable) - SID-format lookups never matched. Reimplemented as `Test-ObjectSid` using `[System.Security.Principal.SecurityIdentifier]`.

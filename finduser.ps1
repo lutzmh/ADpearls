@@ -6,17 +6,24 @@
 
 .DESCRIPTION
     finduser detects the format of the supplied search value and looks up the matching
-    user object in each domain listed in config.xml.
+    user object. By default it only searches the current user's domain context; pass
+    -AllDomains to search every domain listed in config.xml instead.
 
 .PARAMETER SearchId
     The value to search for. Format is auto-detected: samaccountname, SMTP/UPN address,
     objectGUID (registry or immutable/base64), objectSid, or a name for an ANR search.
+
+.PARAMETER AllDomains
+    Search every domain listed in config.xml instead of just the current user's domain.
 
 .PARAMETER NoStats
     Suppress the end-of-run summary (domains searched / users found / errors).
 
 .EXAMPLE
     finduser.ps1 userA
+
+.EXAMPLE
+    finduser.ps1 userA -AllDomains
 
 .EXAMPLE
     finduser.ps1 lutz.mueller-hipper@frontoso.com
@@ -31,29 +38,32 @@
     finduser.ps1 "{67ff6ce4-1cb3-451c-86cc-77544ece4abb}"
 
 .NOTES
-    Author  : Lutz Mueller-Hipper (lutz.mhipper@gmail.com)
-    Version : 4.0.0
+    Author  : lutzmh
+    Version : 4.1.0
 
     Dependencies:
       - ActiveDirectory PowerShell module (RSAT), trusted Microsoft-signed module.
 
     Required permissions:
-      - Read access to user objects in each domain listed in config.xml (default AD
+      - Read access to user objects in the target domain(s) (default AD
         "Authenticated Users" read rights are normally sufficient for the attributes queried).
 
     Configuration:
       - Reads config.xml (see config.example.xml). Only config.example.xml is checked
-        into source control - config.xml is environment-specific.
+        into source control - config.xml is environment-specific. The domain list in
+        config.xml is only used when -AllDomains is passed.
 #>
 
 param(
     [Parameter(Position = 0)]
     [string]$SearchId,
 
+    [switch]$AllDomains,
+
     [switch]$NoStats
 )
 
-$script:ScriptVersion = "4.0.0"
+$script:ScriptVersion = "4.1.0"
 $script:errorCount = 0
 $script:logFilePath = $null
 
@@ -68,10 +78,25 @@ function Show-Usage {
     Write-Host "finduser.ps1 67ff6ce4-1cb3-451c-86cc-77544ece4abb"
     Write-Host 'finduser.ps1 "{67ff6ce4-1cb3-451c-86cc-77544ece4abb}"'
     Write-Host ""
+    Write-Host "By default finduser only searches your current domain context."
+    Write-Host "Add -AllDomains to search every domain listed in config.xml."
     Write-Host "Add -NoStats to suppress the end-of-run summary."
     Write-Host ""
     Write-Host "finduser will detect the format of the search parameter."
 } # end function Show-Usage
+
+function Get-CurrentUserDomain {
+    # Resolves the domain of the current logged-on user/session, without needing AD connectivity first.
+    if ($env:USERDNSDOMAIN) {
+        return $env:USERDNSDOMAIN
+    } # end if USERDNSDOMAIN available
+
+    try {
+        return ([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).Name
+    } catch {
+        throw "Could not determine the current user's domain context. Use -AllDomains to search the domains listed in config.xml instead."
+    } # end try/catch
+} # end function Get-CurrentUserDomain
 
 function Write-Log {
     param(
@@ -305,6 +330,7 @@ function Write-AdUserResult {
 function Main {
     param(
         [string]$SearchId,
+        [switch]$AllDomains,
         [switch]$NoStats
     )
 
@@ -324,12 +350,20 @@ function Main {
 
     Write-Log -level "INFO" -message "finduser v$script:ScriptVersion started, search value: $SearchId"
 
+    if ($AllDomains) {
+        $targetDomains = $config.domains
+        Write-Log -level "INFO" -message "Searching all configured domains: $($targetDomains -join ', ')"
+    } else {
+        $targetDomains = @(Get-CurrentUserDomain)
+        Write-Log -level "INFO" -message "Searching current user domain context: $($targetDomains[0]) (use -AllDomains to search all configured domains)"
+    } # end if AllDomains switch
+
     $ldapFilter = Resolve-LdapFilter -searchId $SearchId
 
     $domainsSearched = 0
     $usersFound = 0
 
-    foreach ($domain in $config.domains) {
+    foreach ($domain in $targetDomains) {
         $domainsSearched++
         $searchResponse = Search-AdUserInDomain -domain $domain -ldapFilter $ldapFilter -ldapAttributes $config.ldapAttributes
 
@@ -353,4 +387,4 @@ function Main {
 
 #endregion functions
 
-Main -SearchId $SearchId -NoStats:$NoStats
+Main -SearchId $SearchId -AllDomains:$AllDomains -NoStats:$NoStats

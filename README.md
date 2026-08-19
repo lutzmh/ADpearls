@@ -1,18 +1,21 @@
 # finduser
 
-Finds an Active Directory user across configured domains by userid (samaccountname),
-SMTP/UPN address, objectGUID (registry or immutable/base64 form), or objectSid. The
-script auto-detects which format you passed in.
+Finds an Active Directory user by userid (samaccountname), SMTP/UPN address,
+objectGUID (registry or immutable/base64 form), or objectSid. The script
+auto-detects which format you passed in.
+
+By default it only searches the **current user's domain context** (`$env:USERDNSDOMAIN`).
+Pass `-AllDomains` to search every domain listed in `config.xml` instead.
 
 ## Requirements
 
 - Windows PowerShell with the **ActiveDirectory** module (RSAT), enforced via
   `#Requires -Modules ActiveDirectory` at the top of the script.
-- Network line of sight to a domain controller for each domain in `config.xml`.
+- Network line of sight to a domain controller for the target domain(s).
 
 ## Permissions
 
-- Read access to user objects in each target domain. Default AD "Authenticated Users"
+- Read access to user objects in the target domain(s). Default AD "Authenticated Users"
   read rights are normally sufficient for the attributes this script queries
   (`objectGUID`, `objectSid`, `cn`, `displayname`, `employeeid`, `mail`,
   `samaccountname`, `userprincipalname`, `msExchMasterAccountSid`,
@@ -25,7 +28,7 @@ test user in each domain and confirm the expected attributes come back populated
 ## Setup
 
 1. Copy `config.example.xml` to `config.xml`.
-2. Edit `config.xml` and list the domains to search:
+2. Edit `config.xml` and list the domains to search when `-AllDomains` is used:
 
    ```xml
    <domains>
@@ -40,7 +43,7 @@ test user in each domain and confirm the expected attributes come back populated
 ## Usage
 
 ```
-finduser.ps1 <searchValue> [-NoStats]
+finduser.ps1 <searchValue> [-AllDomains] [-NoStats]
 ```
 
 Running with no arguments shows this usage screen and does nothing else.
@@ -49,14 +52,16 @@ Running with no arguments shows this usage screen and does nothing else.
 
 ```
 finduser.ps1 userA
+finduser.ps1 userA -AllDomains
 finduser.ps1 lutz.mueller-hipper@frontoso.com
 finduser.ps1 5Gz/Z7McHEWGzHdUTs5Kuw==
 finduser.ps1 67ff6ce4-1cb3-451c-86cc-77544ece4abb
 finduser.ps1 "{67ff6ce4-1cb3-451c-86cc-77544ece4abb}"
 ```
 
-Add `-NoStats` to suppress the end-of-run summary (domains searched / users found /
-errors), e.g. for use in another script's output pipeline.
+Add `-AllDomains` to search every domain listed in `config.xml` instead of just the
+current user's domain. Add `-NoStats` to suppress the end-of-run summary (domains
+searched / users found / errors), e.g. for use in another script's output pipeline.
 
 ## Logging
 
