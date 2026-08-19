@@ -1,0 +1,41 @@
+Coding Standards
+
+Coding rules:
+- Script or tool called without any parameter should only show a usage screen, but not perform any other activity
+- Use a XML configuration file, but have only an example config file in the repository 
+- Login names are okay in script files, use more secure methods to store passwords or use certificates for auth
+- Camelize variable names e.g. dataLocation instead of datalocation for better readability
+- Use the same variable names from the XML file
+- Do not use client- or environment specific variables
+- Use a source code management system, preferable GIT -based e.g. Azure DevOps
+- Use a software development tool, e.g. Visual Studio Code for indentation, spacing and IntelliSense
+- Status information plus proper error handling (info, warning, error) plus explanation or passthrough the error from the library. Show short messages, but log full information into a file
+- Use secure standards (HTTPS over HTTP, etc.), try to enforce TLS1.2 or
+- Identify/document any dependency on external tools or libraries, and make sure that these are trustworthy
+- Document access permission and if possible incl. a test routine
+- Add descriptions in code (in a normal language), or a references to specific business requirement documents
+- Efficiency in data access, e.g. use a server search instead of a local search
+- Use delta information instead of full data imports if possible and reasonable
+- Properly close connections after usage, or reuse the existing ones 
+- In PowerShell declare variables especially if they can be a single value or multiple entries (simple string vs. array of strings)
+- Identify areas where more work is needed now or later (tagging with @todo and a short description)
+- End if or loop with a remark end of …
+- Provide statistical information e.g. number of processed objects, max error count, at the end of the script, have a setting or argument for not showing it
+- Keep run code, libraries, configuration data, temp data and real data in separate folders, only the run code should be in checked-in to source code management
+- While coding write a test plan (typically you have that in your head at this point anyway)
+- Add reasonable verification of all data you read in before processing
+- Check in changes daily or better more often, but only working code.
+- Add meaningful comments during check-in back to the repository
+- Have a main or controller function, put all code for repeatable actions into functions
+
+
+Software publishing
+- Add or update a version number
+- Spell checking!
+- Update release history
+- Compile code (if applicable)
+
+
+Exemptions
+- PowerShell/DOS batch\Unix shell
+Very short PowerShell scripts, e.g. one line, do not need follow all the above, but at least require one input parameter to avoid executing the code unintentionally or use the -WhatIf parameter

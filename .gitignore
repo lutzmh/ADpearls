@@ -1,0 +1,6 @@
+# Real config holds environment-specific data - only config.example.xml is checked in
+config.xml
+
+# Runtime output - not source
+logs/
+temp/

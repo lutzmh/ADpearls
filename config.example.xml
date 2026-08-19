@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Example configuration for finduser.ps1.
+  Copy this file to config.xml and adjust the domain list for your environment.
+  config.xml itself must never be checked into source control (see .gitignore).
+-->
+<FindUserConfig>
+  <domains>
+    <domain>contoso.com</domain>
+    <domain>fabrikam.com</domain>
+  </domains>
+  <ldapAttributes>
+    <attribute>objectGUID</attribute>
+    <attribute>objectSid</attribute>
+    <attribute>objectcategory</attribute>
+    <attribute>cn</attribute>
+    <attribute>displayname</attribute>
+    <attribute>employeeid</attribute>
+    <attribute>mail</attribute>
+    <attribute>samaccountname</attribute>
+    <attribute>userprincipalname</attribute>
+    <attribute>msExchMasterAccountSid</attribute>
+    <attribute>lastLogonTimestamp</attribute>
+  </ldapAttributes>
+  <logging>
+    <logFolder>logs</logFolder>
+  </logging>
+</FindUserConfig>
